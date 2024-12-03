@@ -1,48 +1,58 @@
-import { useState } from 'react';
+import { useState, useCallback } from 'react';
 
-interface Position {
-  x: number;
-  y: number;
-}
-
-export const useChartInteraction = () => {
+export const useChartInteraction = (containerRef: React.RefObject<HTMLDivElement>) => {
   const [hoveredPlanet, setHoveredPlanet] = useState<string | null>(null);
   const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
-  const [tooltipPosition, setTooltipPosition] = useState<Position | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
 
-  const handlePlanetHover = (planet: string | null, planetPosition?: Position) => {
-    // Jeśli jakaś planeta jest wybrana, nie pokazujemy tooltipów przy hover
-    if (!selectedPlanet) {
+  const handlePlanetHover = useCallback(
+    (planet: string | null, rect?: DOMRect) => {
+      // Jeśli planeta jest zaznaczona, ignorujemy zdarzenia hover
+      if (selectedPlanet) return;
+
       setHoveredPlanet(planet);
-      if (planet && planetPosition) {
+
+      if (planet && rect && containerRef.current) {
+        const containerRect = containerRef.current.getBoundingClientRect();
         setTooltipPosition({
-          x: planetPosition.x + 8, // 8px offset od planety
-          y: planetPosition.y
+          x: rect.left + rect.width / 2 - containerRect.left,
+          y: rect.top + rect.height / 2 - containerRect.top,
         });
       } else {
         setTooltipPosition(null);
       }
-    }
-  };
+    },
+    [containerRef, selectedPlanet]
+  );
 
-  const handlePlanetClick = (planet: string, planetPosition: Position) => {
-    if (planet === selectedPlanet) {
-      // Odklikanie planety
+  const handlePlanetClick = useCallback(
+    (planet: string | null) => {
+      if (selectedPlanet === planet) {
+        // Odznaczamy planetę
+        setSelectedPlanet(null);
+        setTooltipPosition(null);
+      } else {
+        // Zaznaczamy nową planetę
+        setSelectedPlanet(planet);
+      }
+    },
+    [selectedPlanet]
+  );
+
+  const handleChartClick = useCallback(() => {
+    if (selectedPlanet) {
+      // Odznaczamy planetę po kliknięciu w wykres
       setSelectedPlanet(null);
       setTooltipPosition(null);
-    } else {
-      // Klikanie nowej planety
-      setSelectedPlanet(planet);
-      setTooltipPosition({
-        x: planetPosition.x + 8,
-        y: planetPosition.y
-      });
     }
-  };
+  }, [selectedPlanet]);
 
-  const isHighlighted = (planet: string) => {
-    return (!selectedPlanet && planet === hoveredPlanet) || planet === selectedPlanet;
-  };
+  const isHighlighted = useCallback(
+    (planet: string) => {
+      return planet === hoveredPlanet || planet === selectedPlanet;
+    },
+    [hoveredPlanet, selectedPlanet]
+  );
 
   return {
     hoveredPlanet,
@@ -50,6 +60,7 @@ export const useChartInteraction = () => {
     tooltipPosition,
     handlePlanetHover,
     handlePlanetClick,
+    handleChartClick,
     isHighlighted,
   };
 };
