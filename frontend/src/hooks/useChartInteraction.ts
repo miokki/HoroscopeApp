@@ -10,25 +10,38 @@ export const useChartInteraction = () => {
   const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
   const [tooltipPosition, setTooltipPosition] = useState<Position | null>(null);
 
-  const handlePlanetHover = (planet: string | null, planetPosition?: { x: number, y: number }) => {
-    setHoveredPlanet(planet);
-    if (planetPosition) {
-      setTooltipPosition(planetPosition);
+  const handlePlanetHover = (planet: string | null, planetPosition?: Position) => {
+    // Jeśli jakaś planeta jest wybrana, nie pokazujemy tooltipów przy hover
+    if (!selectedPlanet) {
+      setHoveredPlanet(planet);
+      if (planet && planetPosition) {
+        setTooltipPosition({
+          x: planetPosition.x + 8, // 8px offset od planety
+          y: planetPosition.y
+        });
+      } else {
+        setTooltipPosition(null);
+      }
     }
   };
 
-  const handlePlanetClick = (planet: string, planetPosition: { x: number, y: number }) => {
+  const handlePlanetClick = (planet: string, planetPosition: Position) => {
     if (planet === selectedPlanet) {
+      // Odklikanie planety
       setSelectedPlanet(null);
       setTooltipPosition(null);
     } else {
+      // Klikanie nowej planety
       setSelectedPlanet(planet);
-      setTooltipPosition(planetPosition);
+      setTooltipPosition({
+        x: planetPosition.x + 8,
+        y: planetPosition.y
+      });
     }
   };
 
   const isHighlighted = (planet: string) => {
-    return planet === hoveredPlanet || planet === selectedPlanet;
+    return (!selectedPlanet && planet === hoveredPlanet) || planet === selectedPlanet;
   };
 
   return {

@@ -1,14 +1,15 @@
 import React from 'react';
-import { THEME_COLORS, PLANET_COLORS, CENTER, RADIUS } from '../../constants/chart';
+import { THEME_COLORS, CENTER, RADIUS } from '../../constants/chart';
 import { polarToCartesian } from '../../utils/chart';
+import PlanetIcon from './PlanetIcon';
 
 interface PlanetProps {
   planet: string;
   position: number;
   isHighlighted: boolean;
   isRetrograde?: boolean;
-  onHover: (planet: string | null, position?: { x: number, y: number }) => void;
-  onClick: (planet: string, position: { x: number, y: number }) => void;
+  onHover: (planet: string | null, position?: { x: number; y: number }) => void;
+  onClick: (planet: string, position: { x: number; y: number }) => void;
 }
 
 export const Planet: React.FC<PlanetProps> = ({
@@ -20,48 +21,48 @@ export const Planet: React.FC<PlanetProps> = ({
   onClick,
 }) => {
   const { x, y } = polarToCartesian(CENTER, CENTER, RADIUS.planets, position - 90);
+  const iconSize = isHighlighted ? 24 : 20;
 
   const handleHover = () => {
     onHover(planet, { x, y });
   };
 
-  const handleClick = () => {
+  const handleClick = (event: React.MouseEvent) => {
     onClick(planet, { x, y });
   };
 
   return (
     <g
-      transform={`translate(${x},${y})`}
+      transform={`translate(${x - iconSize/2},${y - iconSize/2})`}
       onClick={handleClick}
       onMouseEnter={handleHover}
       onMouseLeave={() => onHover(null)}
       style={{ cursor: 'pointer' }}
+      className="transition-all duration-200"
     >
       {/* Poświata */}
       {isHighlighted && (
         <circle
-          r={6}
-          fill={PLANET_COLORS[planet]}
-          opacity={0.3}
+          cx={iconSize/2}
+          cy={iconSize/2}
+          r={iconSize * 0.7}
+          fill={THEME_COLORS.primary}
+          opacity={0.2}
           filter="url(#glow)"
         />
       )}
 
-      {/* Planeta */}
-      <circle
-        r={isHighlighted ? 6 : 4}
-        fill={PLANET_COLORS[planet]}
-        stroke={THEME_COLORS.primary}
-        strokeWidth={isHighlighted ? "1.5" : "1"}
-        className="transition-all duration-200"
-      />
+      {/* Ikona planety */}
+      <foreignObject width={iconSize} height={iconSize}>
+        <PlanetIcon planet={planet} size={iconSize} />
+      </foreignObject>
 
       {/* Symbol retrogradacji */}
       {isRetrograde && (
         <text
-          x="8"
-          y="-8"
-          fill={PLANET_COLORS[planet]}
+          x={iconSize + 4}
+          y={-4}
+          fill={THEME_COLORS.primary}
           fontSize="12"
           className="select-none animate-gentle-bounce"
         >
@@ -71,8 +72,8 @@ export const Planet: React.FC<PlanetProps> = ({
 
       {/* Nazwa planety */}
       <text
-        x="0"
-        y="20"
+        x={iconSize/2}
+        y={iconSize + 12}
         textAnchor="middle"
         fill={THEME_COLORS.primary}
         fontSize={isHighlighted ? "12" : "11"}

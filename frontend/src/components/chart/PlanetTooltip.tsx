@@ -1,5 +1,6 @@
 import React from 'react';
 import { PlanetPosition } from './HoroscopeChart';
+import PlanetIcon from './PlanetIcon';
 
 interface PlanetTooltipProps {
   planet: string;
@@ -20,15 +21,15 @@ const PlanetTooltip: React.FC<PlanetTooltipProps> = ({ planet, data, position })
     <div 
       className="absolute pointer-events-none bg-slate-900/95 border border-slate-700 
                  rounded-lg p-3 shadow-xl backdrop-blur-sm z-50
-                 transition-all duration-200 ease-in-out"
+                 transition-all duration-200 ease-in-out flex items-center"
       style={{ 
-        left: shouldShowOnRight ? `${relativeX + 20}px` : `${relativeX - 220}px`,
+        left: shouldShowOnRight ? `${relativeX + 20}px` : `${relativeX - 260}px`,
         top: `${relativeY - 10}px`,
-        width: '200px',
+        width: '260px',
         transform: 'translateY(-50%)'
       }}
     >
-      <div className="space-y-2">
+      <div className="flex-grow space-y-2">
         <div className="flex justify-between items-center">
           <span className="font-medium text-lg">{planet}</span>
           {data.retrogradacja && (
@@ -56,6 +57,9 @@ const PlanetTooltip: React.FC<PlanetTooltipProps> = ({ planet, data, position })
             </p>
           )}
         </div>
+      </div>
+      <div className="ml-4">
+        <PlanetIcon planet={planet} size={72} />
       </div>
     </div>
   );
