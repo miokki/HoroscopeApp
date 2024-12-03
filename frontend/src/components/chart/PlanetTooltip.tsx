@@ -4,20 +4,28 @@ import { PlanetPosition } from './HoroscopeChart';
 interface PlanetTooltipProps {
   planet: string;
   data: PlanetPosition;
-  x: number;
-  y: number;
+  position: { x: number; y: number };
 }
 
-const PlanetTooltip: React.FC<PlanetTooltipProps> = ({ planet, data, x, y }) => {
+const PlanetTooltip: React.FC<PlanetTooltipProps> = ({ planet, data, position }) => {
+  // Określamy, czy tooltip powinien być po prawej stronie
+  const shouldShowOnRight = position.x < window.innerWidth / 2;
+  
+  // Obliczamy pozycję względem SVG
+  const svgRect = document.querySelector('svg')?.getBoundingClientRect();
+  const relativeX = svgRect ? position.x - svgRect.left : position.x;
+  const relativeY = svgRect ? position.y - svgRect.top : position.y;
+
   return (
     <div 
-      className="absolute pointer-events-none transform -translate-x-1/2 -translate-y-full
-                 bg-slate-900/95 border border-slate-700 rounded-lg p-3 shadow-xl
-                 backdrop-blur-sm animate-in fade-in zoom-in duration-200"
+      className="absolute pointer-events-none bg-slate-900/95 border border-slate-700 
+                 rounded-lg p-3 shadow-xl backdrop-blur-sm z-50
+                 transition-all duration-200 ease-in-out"
       style={{ 
-        left: x, 
-        top: y - 10,
-        minWidth: '200px'
+        left: shouldShowOnRight ? `${relativeX + 20}px` : `${relativeX - 220}px`,
+        top: `${relativeY - 10}px`,
+        width: '200px',
+        transform: 'translateY(-50%)'
       }}
     >
       <div className="space-y-2">

@@ -56,7 +56,7 @@ const HoroscopeChart: React.FC<HoroscopeChartProps> = ({ data }) => {
   const {
     hoveredPlanet,
     selectedPlanet,
-    mousePosition,
+    tooltipPosition,
     handlePlanetHover,
     handlePlanetClick,
     isHighlighted,
@@ -107,12 +107,11 @@ const HoroscopeChart: React.FC<HoroscopeChartProps> = ({ data }) => {
       </ChartContainer>
 
       {/* Tooltip - wyświetlany poza SVG */}
-      {activePlanet && planet_positions[activePlanet] && (
+      {activePlanet && tooltipPosition && planet_positions[activePlanet] && (
         <PlanetTooltip 
           planet={activePlanet}
           data={planet_positions[activePlanet]}
-          x={mousePosition.x}
-          y={mousePosition.y}
+          position={tooltipPosition}
         />
       )}
     </div>

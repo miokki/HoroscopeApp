@@ -7,8 +7,8 @@ interface PlanetProps {
   position: number;
   isHighlighted: boolean;
   isRetrograde?: boolean;
-  onHover: (planet: string | null, event?: React.MouseEvent) => void;
-  onClick: (planet: string, event: React.MouseEvent) => void;
+  onHover: (planet: string | null, position?: { x: number, y: number }) => void;
+  onClick: (planet: string, position: { x: number, y: number }) => void;
 }
 
 export const Planet: React.FC<PlanetProps> = ({
@@ -21,57 +21,49 @@ export const Planet: React.FC<PlanetProps> = ({
 }) => {
   const { x, y } = polarToCartesian(CENTER, CENTER, RADIUS.planets, position - 90);
 
-  const baseRadius = 4;
-  const highlightedRadius = 6;
-  const currentRadius = isHighlighted ? highlightedRadius : baseRadius;
+  const handleHover = () => {
+    onHover(planet, { x, y });
+  };
+
+  const handleClick = () => {
+    onClick(planet, { x, y });
+  };
 
   return (
     <g
       transform={`translate(${x},${y})`}
-      onClick={(e) => onClick(planet, e)}
-      onMouseEnter={(e) => onHover(planet, e)}
+      onClick={handleClick}
+      onMouseEnter={handleHover}
       onMouseLeave={() => onHover(null)}
       style={{ cursor: 'pointer' }}
     >
-      {/* Animowana poświata */}
+      {/* Poświata */}
       {isHighlighted && (
-        <>
-          <circle
-            r={currentRadius + 6}
-            fill={PLANET_COLORS[planet]}
-            opacity="0.15"
-            className="animate-pulse"
-          />
-          <circle
-            r={currentRadius + 3}
-            fill={PLANET_COLORS[planet]}
-            opacity="0.3"
-            className="animate-pulse"
-          />
-        </>
+        <circle
+          r={6}
+          fill={PLANET_COLORS[planet]}
+          opacity={0.3}
+          filter="url(#glow)"
+        />
       )}
 
       {/* Planeta */}
       <circle
-        r={currentRadius}
+        r={isHighlighted ? 6 : 4}
         fill={PLANET_COLORS[planet]}
         stroke={THEME_COLORS.primary}
         strokeWidth={isHighlighted ? "1.5" : "1"}
-        className="transition-all duration-300 ease-in-out"
+        className="transition-all duration-200"
       />
 
-      {/* Symbol retrogradacji z animacją */}
+      {/* Symbol retrogradacji */}
       {isRetrograde && (
         <text
           x="8"
           y="-8"
           fill={PLANET_COLORS[planet]}
           fontSize="12"
-          className="animate-bounce select-none"
-          style={{ 
-            animationDuration: '2s',
-            animationDelay: `${Math.random() * 0.5}s` 
-          }}
+          className="select-none animate-gentle-bounce"
         >
           ℞
         </text>
@@ -82,11 +74,10 @@ export const Planet: React.FC<PlanetProps> = ({
         x="0"
         y="20"
         textAnchor="middle"
-        fill={isHighlighted ? PLANET_COLORS[planet] : THEME_COLORS.primary}
+        fill={THEME_COLORS.primary}
         fontSize={isHighlighted ? "12" : "11"}
         opacity={isHighlighted ? "1" : "0.8"}
-        className="transition-all duration-300 ease-in-out select-none"
-        filter="url(#glow)"
+        className="select-none"
       >
         {planet}
       </text>

@@ -1,6 +1,6 @@
 import { useState } from 'react';
 
-interface MousePosition {
+interface Position {
   x: number;
   y: number;
 }
@@ -8,21 +8,22 @@ interface MousePosition {
 export const useChartInteraction = () => {
   const [hoveredPlanet, setHoveredPlanet] = useState<string | null>(null);
   const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
-  const [mousePosition, setMousePosition] = useState<MousePosition>({ x: 0, y: 0 });
+  const [tooltipPosition, setTooltipPosition] = useState<Position | null>(null);
 
-  const handlePlanetHover = (planet: string | null, event?: React.MouseEvent) => {
+  const handlePlanetHover = (planet: string | null, planetPosition?: { x: number, y: number }) => {
     setHoveredPlanet(planet);
-    if (event) {
-      setMousePosition({ x: event.clientX, y: event.clientY });
+    if (planetPosition) {
+      setTooltipPosition(planetPosition);
     }
   };
 
-  const handlePlanetClick = (planet: string, event: React.MouseEvent) => {
+  const handlePlanetClick = (planet: string, planetPosition: { x: number, y: number }) => {
     if (planet === selectedPlanet) {
       setSelectedPlanet(null);
+      setTooltipPosition(null);
     } else {
       setSelectedPlanet(planet);
-      setMousePosition({ x: event.clientX, y: event.clientY });
+      setTooltipPosition(planetPosition);
     }
   };
 
@@ -33,11 +34,9 @@ export const useChartInteraction = () => {
   return {
     hoveredPlanet,
     selectedPlanet,
-    mousePosition,
+    tooltipPosition,
     handlePlanetHover,
     handlePlanetClick,
     isHighlighted,
   };
 };
-
-export default useChartInteraction;
