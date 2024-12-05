@@ -27,19 +27,71 @@ HoroscopeApp to aplikacja umożliwiająca obliczanie i wizualizację horoskopów
 
 ## Struktura projektu
 
-- `/backend`
+- `/HoroscopeApp`
+  - `/backend`
     - `app.py`: Główny plik aplikacji backendowej.
     - `/ephe`: Pliki efemeryd potrzebne do obliczeń astrologicznych.
-- `/frontend`
+      - `seas_18.se1`
+      - `semo_18.se1`
+      - `sepl_18.se1`
+    - `/venv`
+  - `/frontend`
+    - `package-lock.json`
+    - `package.json`
+    - `postcss.config.js`
+    - `tailwind.connfig.js`
+    - `tsconfig.json`
+    - `/public`
+      - `favicon.ico`
+      - `index.html`
+      - `logo192.png`
+      - `logo512.png`
+      - `manifest.json`
+      - `robots.txt`
+    - `/node_modules`
     - `/src`
-        - `/assets/icons`: Ikony planet używane w wykresie.
-        - `/components`: Komponenty React odpowiedzialne za różne części aplikacji (formularze, wykresy, itp.).
-        - `/constants`: Stałe wartości używane w aplikacji frontendowej.
-        - `/hooks`: Własne hooki React ułatwiające interakcję z wykresem.
-        - `/utils`: Funkcje pomocnicze używane w aplikacji.
-    - `App.tsx`: Główny komponent aplikacji frontendowej.
+      - `/assets`
+        - `/icons`: Ikony planet używane w wykresie.
+          - `jupiter.svg`
+          - `mars.svg`
+          - `mercury.svg`
+          - `moon.svg`
+          - `neptune.svg`
+          - `pluto.svg`
+          - `saturn.svg`
+          - `sun.svg`
+          - `uranus.svg`
+          - `venus.svg`
+          - `default.svg`
+      - `/components`: Komponenty React odpowiedzialne za różne części aplikacji (formularze, wykresy, itp.).
+        - `/chart`
+          - `AspectLine.tsx`
+          - `ChartContainer.tsx`
+          - `HoroscopeChart.tsx`
+          - `HouseLabel.tsx`
+          - `Houses.tsx`
+          - `MoonPhase.tsx`
+          - `Planet.tsx`
+          - `PlanetIcon.tsx`
+          - `PlanetTooltip.tsx`
+          - `ZodiacCircle.tsx`
+        - `/form`
+            - `HoroscopeForm.tsx`
+            - `LocationInput.tsx`
+       - `/constants`: Stałe wartości używane w aplikacji frontendowej.
+        - `chart.ts`
+      - `/hooks`: Własne hooki React ułatwiające interakcję z wykresem.
+        - `useChartInteraction.ts`
+      - `/utils`: Funkcje pomocnicze używane w aplikacji.
+        - `chart.ts`
+      - `App.tsx`: Główny komponent aplikacji frontendowej.
+      - `App.css`
+      - `index.tsx`
+      - `index.css`
+      - `react-app-env.d.ts`
+      - `reportWebVitals.ts`
+      - `setupTests.ts`    
     - `tailwind.config.js`: Konfiguracja Tailwind CSS.
-    
 ## Instalacja i uruchomienie
 
 ### Backend
