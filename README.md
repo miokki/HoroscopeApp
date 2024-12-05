@@ -17,6 +17,7 @@ HoroscopeApp to aplikacja umożliwiająca obliczanie i wizualizację horoskopów
 - **Flask**: Framework do tworzenia API RESTful.
 - **swisseph**: Biblioteka do precyzyjnych obliczeń pozycji ciał niebieskich.
 - **geopy**: Umożliwia geokodowanie lokalizacji na podstawie nazwy miejsca.
+- **pytz**: Obsługa stref czasowych w Pythonie.
 
 ### Frontend
 
@@ -24,6 +25,7 @@ HoroscopeApp to aplikacja umożliwiająca obliczanie i wizualizację horoskopów
 - **TypeScript**: Statyczne typowanie w kodzie JavaScript.
 - **Tailwind CSS**: Stylowanie komponentów z wykorzystaniem utilitarnej biblioteki CSS.
 - **SVG**: Generowanie skalowalnych grafik wykresu horoskopu.
+- **D3.js**: Biblioteka do tworzenia dynamicznych i interaktywnych wizualizacji danych.
 
 ## Struktura projektu
 
@@ -79,19 +81,20 @@ HoroscopeApp to aplikacja umożliwiająca obliczanie i wizualizację horoskopów
             - `HoroscopeForm.tsx`
             - `LocationInput.tsx`
        - `/constants`: Stałe wartości używane w aplikacji frontendowej.
-        - `chart.ts`
-      - `/hooks`: Własne hooki React ułatwiające interakcję z wykresem.
-        - `useChartInteraction.ts`
-      - `/utils`: Funkcje pomocnicze używane w aplikacji.
-        - `chart.ts`
-      - `App.tsx`: Główny komponent aplikacji frontendowej.
-      - `App.css`
-      - `index.tsx`
-      - `index.css`
-      - `react-app-env.d.ts`
-      - `reportWebVitals.ts`
-      - `setupTests.ts`    
-    - `tailwind.config.js`: Konfiguracja Tailwind CSS.
+         - `chart.ts`
+       - `/hooks`: Własne hooki React ułatwiające interakcję z wykresem.
+         - `useChartInteraction.ts`
+       - `/utils`: Funkcje pomocnicze używane w aplikacji.
+         - `chart.ts`
+       - `App.tsx`: Główny komponent aplikacji frontendowej.
+       - `App.css`
+       - `index.tsx`
+       - `index.css`
+       - `react-app-env.d.ts`
+       - `reportWebVitals.ts`
+       - `setupTests.ts`    
+     - `tailwind.config.js`: Konfiguracja Tailwind CSS.
+
 ## Instalacja i uruchomienie
 
 ### Backend
