@@ -9,9 +9,9 @@ import { ReactComponent as SaturnIcon } from '../../assets/icons/saturn.svg';
 import { ReactComponent as UranusIcon } from '../../assets/icons/uranus.svg';
 import { ReactComponent as NeptuneIcon } from '../../assets/icons/neptune.svg';
 import { ReactComponent as PlutoIcon } from '../../assets/icons/pluto.svg';
-import { ReactComponent as DefaultIcon } from '../../assets/icons/default.svg'; // Import ikony domyślnej
+import { ReactComponent as DefaultIcon } from '../../assets/icons/default.svg';
+import { PLANET_COLORS } from '../../constants/chart';
 
-// Mapowanie nazw planet na komponenty ikon
 const planetIconMap: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
   'Słońce': SunIcon,
   'Księżyc': MoonIcon,
@@ -23,18 +23,60 @@ const planetIconMap: Record<string, React.FC<React.SVGProps<SVGSVGElement>>> = {
   'Uran': UranusIcon,
   'Neptun': NeptuneIcon,
   'Pluton': PlutoIcon,
-  // Dodaj inne obiekty, jeśli są dostępne
 };
 
+type PlanetName = keyof typeof PLANET_COLORS;
+
 interface PlanetIconProps {
-  planet: string;
+  planet: PlanetName;
   size?: number;
+  className?: string;
+  isHighlighted?: boolean;
 }
 
-const PlanetIcon: React.FC<PlanetIconProps> = ({ planet, size = 24 }) => {
-  const IconComponent = planetIconMap[planet] || DefaultIcon; // Użycie ikony domyślnej
+const PlanetIcon: React.FC<PlanetIconProps> = ({
+  planet,
+  size = 24,
+  className = '',
+  isHighlighted = false
+}) => {
+  const IconComponent = planetIconMap[planet] || DefaultIcon;
+  const planetColor = PLANET_COLORS[planet];
 
-  return <IconComponent width={size} height={size} />;
+  return (
+    <div 
+      className={`
+        relative 
+        transition-transform duration-300 
+        ${isHighlighted ? 'scale-110' : 'scale-100'}
+        ${className}
+      `}
+      style={{ width: size, height: size }}
+    >
+      {/* Efekt poświaty dla wyróżnionej planety */}
+      {isHighlighted && (
+        <div 
+          className="absolute inset-0 animate-pulse-slow"
+          style={{
+            background: `radial-gradient(circle, ${planetColor}40 0%, transparent 70%)`,
+            transform: 'scale(1.5)',
+          }}
+        />
+      )}
+      
+      <IconComponent 
+        width={size} 
+        height={size}
+        className={`
+          relative z-10 
+          drop-shadow-lg 
+          transition-all duration-300
+          ${isHighlighted ? 'filter brightness-125' : ''}
+        `}
+        style={{ color: planetColor }}
+      />
+    </div>
+  );
 };
 
 export default PlanetIcon;

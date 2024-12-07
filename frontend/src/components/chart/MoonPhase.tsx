@@ -4,77 +4,51 @@ interface MoonPhaseProps {
   phase: {
     phase: string;
     degrees: number;
+    percentage: number;
   };
 }
 
-const MoonPhase: React.FC<MoonPhaseProps> = ({ phase }) => {
-  // Określ kształt Księżyca na podstawie fazy
-  const getMoonShape = () => {
-    switch (phase.phase) {
-      case 'Nów':
-        return '🌑';
-      case 'Przybywający sierp':
-        return '🌒';
-      case 'Pierwsza kwadra':
-        return '🌓';
-      case 'Przybywający garb':
-        return '🌔';
-      case 'Pełnia':
-        return '🌕';
-      case 'Ubywający garb':
-        return '🌖';
-      case 'Ostatnia kwadra':
-        return '🌗';
-      case 'Ubywający sierp':
-        return '🌘';
-      default:
-        return '🌑';
-    }
-  };
+const getMoonPhaseSymbol = (degrees: number): string => {
+  if (degrees <= 45) return '🌑'; // nów
+  if (degrees <= 135) return '🌒'; // pierwsza kwadra
+  if (degrees <= 225) return '🌕'; // pełnia
+  if (degrees <= 315) return '🌘'; // ostatnia kwadra
+  return '🌑';
+};
 
+const getMoonPhaseDescription = (degrees: number): string => {
+  const percentage = Math.round((degrees / 360) * 100);
+  return `${percentage}% cyklu księżycowego`;
+};
+
+export const MoonPhase: React.FC<MoonPhaseProps> = ({ phase }) => {
   return (
-    <div className="bg-slate-800/80 rounded-lg p-6 shadow-lg backdrop-blur-sm">
-      <h2 className="text-lg font-semibold mb-4 text-yellow-400">Faza Księżyca</h2>
-      <div className="flex flex-col items-center gap-2">
-        {/* Symbol fazy księżyca */}
-        <span className="text-4xl mb-2 animate-float">
-          {getMoonShape()}
-        </span>
-        
-        {/* Nazwa fazy */}
-        <span className="text-lg font-medium text-slate-200">
-          {phase.phase}
-        </span>
-        
-        {/* Stopnie od Słońca */}
-        <span className="text-sm text-slate-400">
-          {Math.round(phase.degrees)}° od Słońca
-        </span>
-        
-        {/* Dodatkowe informacje o fazie */}
-        <span className="text-xs text-slate-500 mt-2 text-center">
-          {phase.degrees < 180 ? 'Księżyc przybywający' : 'Księżyc ubywający'}
-        </span>
+    <div className="bg-slate-800/50 backdrop-blur-sm rounded-lg p-4 shadow-lg">
+      <div className="flex items-center gap-4">
+        {/* Symbol fazy */}
+        <div className="text-4xl">
+          {getMoonPhaseSymbol(phase.degrees)}
+        </div>
+
+        <div className="flex flex-col gap-1">
+          {/* Nazwa fazy */}
+          <span className="text-lg font-medium text-slate-200">
+            {phase.phase}
+          </span>
+          
+          {/* Procent cyklu */}
+          <span className="text-sm text-slate-400">
+            {getMoonPhaseDescription(phase.degrees)}
+          </span>
+          
+          {/* Dokładny kąt */}
+          <span className="text-xs text-slate-500">
+            {Math.round(phase.degrees)}° od Słońca
+          </span>
+        </div>
       </div>
     </div>
   );
 };
-
-// Dodaj animację unoszenia się do tailwind.config.js
-// module.exports = {
-//   theme: {
-//     extend: {
-//       keyframes: {
-//         float: {
-//           '0%, 100%': { transform: 'translateY(0)' },
-//           '50%': { transform: 'translateY(-10px)' },
-//         }
-//       },
-//       animation: {
-//         float: 'float 3s ease-in-out infinite',
-//       },
-//     },
-//   },
-// }
 
 export default MoonPhase;

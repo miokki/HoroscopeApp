@@ -1,63 +1,64 @@
 import React from 'react';
-import { PlanetPosition } from './HoroscopeChart';
-import PlanetIcon from './PlanetIcon';
 
 interface PlanetTooltipProps {
   planet: string;
-  data: PlanetPosition;
+  data: {
+    'znak_zodiaku': string;
+    'dom': number;
+    'stopnie': number;
+    'minuty': number;
+    'retrogradacja'?: boolean;
+    'dyspozytor'?: string;
+    'faza'?: {
+      phase: string;
+      degrees: number;
+    };
+  };
   position: { x: number; y: number };
 }
 
 const PlanetTooltip: React.FC<PlanetTooltipProps> = ({ planet, data, position }) => {
-  const shouldShowOnRight = position.x < window.innerWidth / 2;
-
-  const horizontalOffset = 18;
-  const verticalOffset = 0;
-
-  const tooltipWidth = 220;
-
-  const leftPosition = shouldShowOnRight
-    ? position.x + horizontalOffset
-    : position.x - tooltipWidth - horizontalOffset;
-
   return (
-    <div
-      className="absolute pointer-events-none bg-slate-900/95 border border-slate-700
-                   rounded-lg p-4 shadow-xl backdrop-blur-sm z-50
-                   transition-all duration-200 ease-in-out flex flex-col items-center"
+    <div 
+      className="absolute z-50 pointer-events-none"
       style={{
-        left: `${leftPosition}px`,
-        top: `${position.y + verticalOffset}px`,
-        width: `${tooltipWidth}px`,
-        transform: 'translateY(-50%)',
+        left: position.x,
+        top: position.y,
+        transform: 'translate(-50%, -120%)'
       }}
     >
-      <PlanetIcon planet={planet} size={96} /> {/* Increased icon size */}
-      <div className="mt-2 text-center">
-        <span className="font-medium text-lg">{planet}</span>
-        {data.retrogradacja && (
-          <div className="text-red-400 text-sm mt-1">Retrogradacja ℞</div>
-        )}
-        <div className="mt-2 text-sm space-y-1">
-          <div>
-            <span className="text-slate-400">Znak: </span>
-            <span className="text-slate-200">{data.znak_zodiaku}</span>
-          </div>
-          <div>
-            <span className="text-slate-400">Pozycja: </span>
-            <span className="text-slate-200">
-              {data.stopnie}°{data.minuty}'
-            </span>
-          </div>
-          <div>
-            <span className="text-slate-400">Dom: </span>
-            <span className="text-slate-200">{data.dom}</span>
-          </div>
+      <div className="bg-slate-800/90 rounded-lg p-4 shadow-xl backdrop-blur-md border border-slate-700">
+        {/* Nagłówek */}
+        <div className="flex items-center gap-2 mb-2">
+          <h3 className="text-lg font-semibold text-primary">
+            {planet}
+          </h3>
+          {data.retrogradacja && (
+            <span className="text-red-400 text-sm">℞</span>
+          )}
+        </div>
+
+        {/* Informacje podstawowe */}
+        <div className="space-y-1 text-sm">
+          <p className="text-slate-300">
+            {data.znak_zodiaku} {data.stopnie}°{data.minuty}'
+          </p>
+          <p className="text-slate-400">
+            Dom {data.dom}
+          </p>
+          
+          {/* Dyspozytor */}
           {data.dyspozytor && (
-            <div>
-              <span className="text-slate-400">Dyspozytor: </span>
-              <span className="text-slate-200">{data.dyspozytor}</span>
-            </div>
+            <p className="text-slate-400">
+              Dyspozytor: {data.dyspozytor}
+            </p>
+          )}
+
+          {/* Faza Księżyca */}
+          {data.faza && (
+            <p className="text-slate-400">
+              Faza: {data.faza.phase} ({Math.round(data.faza.degrees)}°)
+            </p>
           )}
         </div>
       </div>

@@ -27,6 +27,8 @@ ASPECTS = {
     'opozycja': {'angle': 180, 'orb': 8}
 }
 
+STELLIUM_ORB = 10
+
 PLANETS = {
     'Słońce': {'id': swe.SUN, 'orb': 10, 'ruler_of': 'Lew'},
     'Księżyc': {'id': swe.MOON, 'orb': 10, 'ruler_of': 'Rak'},
@@ -103,7 +105,7 @@ def find_dispositor(planet_sign, rulers):
                 return planet
     return None
 
-def find_stelliums(positions, orb=10):
+def find_stelliums(positions, orb=STELLIUM_ORB):
     stelliums = []
     planets = list(positions.keys())
     
@@ -164,7 +166,12 @@ def calculate_planet_positions(date, time, lat, lon):
     dt = datetime.datetime.strptime(f"{date} {time}", "%Y-%m-%d %H:%M")
     jd = swe.julday(dt.year, dt.month, dt.day, dt.hour + dt.minute/60.0)
     
-    swe.set_ephe_path(EPHE_PATH)
+    try:
+        swe.set_ephe_path(EPHE_PATH)
+    except Exception as e:
+        print(f"Błąd podczas ustawiania ścieżki efemeryd: {e}")
+        raise
+    
     flags = swe.FLG_SPEED | swe.FLG_SWIEPH
     
     house_positions, asc = calculate_houses(jd, lat, lon)
@@ -286,8 +293,21 @@ def find_aspect_configurations(aspects):
             (a['planet1'] == planet2 and a['planet2'] == planet1 and a['aspekt'] == aspect_type)
             for a in aspects_list
         )
-    # Wielki Trygon
+
     planet_list = list(set([a['planet1'] for a in aspects] + [a['planet2'] for a in aspects]))
+    
+    # Znajdź Wielkie Trygony
+    find_grand_trines(planet_list, aspects, configurations, has_aspect)
+    
+    # Znajdź Kwadraty T
+    find_t_squares(planet_list, aspects, configurations, has_aspect)
+    
+    # Znajdź Latawce
+    find_kites(planet_list, aspects, configurations, has_aspect)
+
+    return configurations
+
+def find_grand_trines(planet_list, aspects, configurations, has_aspect):
     for i, p1 in enumerate(planet_list):
         for j, p2 in enumerate(planet_list[i+1:], i+1):
             for k, p3 in enumerate(planet_list[j+1:], j+1):
@@ -299,7 +319,7 @@ def find_aspect_configurations(aspects):
                         'planety': [p1, p2, p3]
                     })
 
-    # Kwadrat T
+def find_t_squares(planet_list, aspects, configurations, has_aspect):
     for p1 in planet_list:
         for p2 in planet_list:
             if p1 == p2:
@@ -316,7 +336,7 @@ def find_aspect_configurations(aspects):
                         'planeta_szczytowa': p3
                     })
 
-    # Latawiec (Kite)
+def find_kites(planet_list, aspects, configurations, has_aspect):
     for p1 in planet_list:
         for p2 in planet_list:
             if p1 == p2:
@@ -336,8 +356,6 @@ def find_aspect_configurations(aspects):
                             'planety': [p1, p2, p3, p4],
                             'planeta_szczytowa': p1
                         })
-
-    return configurations
 
 @app.route('/api/calculate', methods=['POST'])
 def calculate_horoscope():
@@ -383,4 +401,4 @@ def calculate_horoscope():
         }), 500
 
 if __name__ == '__main__':
-    app.run(debug=True) 
+    app.run(debug=True)

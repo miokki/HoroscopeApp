@@ -2,31 +2,20 @@ import React from 'react';
 import { CHART_SIZE } from '../../constants/chart';
 
 interface ChartContainerProps {
+  containerRef: React.RefObject<SVGSVGElement>;
   children: React.ReactNode;
-  containerRef: React.RefObject<HTMLDivElement>;
 }
 
-export const ChartContainer: React.FC<ChartContainerProps> = ({ children, containerRef }) => {
+const ChartContainer: React.FC<ChartContainerProps> = ({ containerRef, children }) => {
   return (
-    <div ref={containerRef} className="relative w-full overflow-hidden">
-      <div className="aspect-square w-full max-w-full">
-        <svg
-          viewBox={`0 0 ${CHART_SIZE} ${CHART_SIZE}`}
-          className="w-full h-full"
-        >
-          <defs>
-            <filter id="glow">
-              <feGaussianBlur stdDeviation="2" result="coloredBlur" />
-              <feMerge>
-                <feMergeNode in="coloredBlur" />
-                <feMergeNode in="SourceGraphic" />
-              </feMerge>
-            </filter>
-          </defs>
-          {children}
-        </svg>
-      </div>
-    </div>
+    <svg
+      ref={containerRef}
+      viewBox={`0 0 ${CHART_SIZE} ${CHART_SIZE}`}
+      className="w-full h-full"
+      preserveAspectRatio="xMidYMid meet"
+    >
+      {children}
+    </svg>
   );
 };
 

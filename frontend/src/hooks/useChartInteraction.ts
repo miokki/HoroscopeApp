@@ -1,38 +1,52 @@
-import { useState, useCallback } from 'react';
+import { useState, useCallback, RefObject } from 'react';
 
-export const useChartInteraction = (containerRef: React.RefObject<HTMLDivElement>) => {
+interface TooltipPosition {
+  x: number;
+  y: number;
+}
+
+export function useChartInteraction(containerRef: RefObject<SVGSVGElement>) {
   const [hoveredPlanet, setHoveredPlanet] = useState<string | null>(null);
   const [selectedPlanet, setSelectedPlanet] = useState<string | null>(null);
-  const [tooltipPosition, setTooltipPosition] = useState<{ x: number; y: number } | null>(null);
+  const [tooltipPosition, setTooltipPosition] = useState<TooltipPosition | null>(null);
 
   const handlePlanetHover = useCallback(
-    (planet: string | null, rect?: DOMRect) => {
-      // Jeśli planeta jest zaznaczona, ignorujemy zdarzenia hover
-      if (selectedPlanet) return;
-
+    (planet: string | null, event?: React.MouseEvent) => {
       setHoveredPlanet(planet);
+      
+      if (event && containerRef.current) {
+        const rect = containerRef.current.getBoundingClientRect();
+        const x = event.clientX - rect.left;
+        const y = event.clientY - rect.top;
+        
+        // Zapobiegaj wychodzeniu tooltipa poza kontener
+        const containerWidth = rect.width;
+        const containerHeight = rect.height;
+        const tooltipOffset = 10;
+        
+        const adjustedX = Math.min(
+          Math.max(x, tooltipOffset), 
+          containerWidth - tooltipOffset
+        );
+        const adjustedY = Math.min(
+          Math.max(y, tooltipOffset), 
+          containerHeight - tooltipOffset
+        );
 
-      if (planet && rect && containerRef.current) {
-        const containerRect = containerRef.current.getBoundingClientRect();
-        setTooltipPosition({
-          x: rect.left + rect.width / 2 - containerRect.left,
-          y: rect.top + rect.height / 2 - containerRect.top,
-        });
+        setTooltipPosition({ x: adjustedX, y: adjustedY });
       } else {
         setTooltipPosition(null);
       }
     },
-    [containerRef, selectedPlanet]
+    [containerRef]
   );
 
   const handlePlanetClick = useCallback(
-    (planet: string | null) => {
+    (planet: string) => {
       if (selectedPlanet === planet) {
-        // Odznaczamy planetę
         setSelectedPlanet(null);
         setTooltipPosition(null);
       } else {
-        // Zaznaczamy nową planetę
         setSelectedPlanet(planet);
       }
     },
@@ -41,7 +55,6 @@ export const useChartInteraction = (containerRef: React.RefObject<HTMLDivElement
 
   const handleChartClick = useCallback(() => {
     if (selectedPlanet) {
-      // Odznaczamy planetę po kliknięciu w wykres
       setSelectedPlanet(null);
       setTooltipPosition(null);
     }

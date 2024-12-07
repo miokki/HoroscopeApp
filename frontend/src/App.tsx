@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import HoroscopeForm from './components/form/HoroscopeForm';
-import HoroscopeChart from './components/chart/HoroscopeChart';
+import { HoroscopeChart } from './components/chart/HoroscopeChart';
 import MoonPhase from './components/chart/MoonPhase';
 
 interface FormData {

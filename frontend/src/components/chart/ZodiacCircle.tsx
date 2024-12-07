@@ -1,9 +1,14 @@
 import React from 'react';
-import { THEME_COLORS, ZODIAC_SIGNS, CENTER, RADIUS } from '../../constants/chart';
+import { THEME_COLORS, CENTER, RADIUS } from '../../constants/chart';
 import { polarToCartesian } from '../../utils/chart';
 
-export const ZodiacCircle: React.FC = () => {
-  // Renderuje znaczniki stopni
+interface ZodiacCircleProps {
+  zodiacSigns: Array<{ symbol: string; name: string }>;
+  radius: number;
+}
+
+export const ZodiacCircle: React.FC<ZodiacCircleProps> = ({ zodiacSigns, radius }) => {
+  // Renderowanie znaczników stopni z lepszą widocznością
   const renderDegreeMarks = () => {
     const marks = [];
     for (let i = 0; i < 360; i += 5) {
@@ -12,7 +17,7 @@ export const ZodiacCircle: React.FC = () => {
       const end = polarToCartesian(
         CENTER, 
         CENTER, 
-        RADIUS.outer - (isMainDegree ? RADIUS.tick * 2 : RADIUS.tick), 
+        RADIUS.outer - (isMainDegree ? 8 : 5),
         i - 90
       );
       
@@ -24,8 +29,9 @@ export const ZodiacCircle: React.FC = () => {
           x2={end.x}
           y2={end.y}
           stroke={THEME_COLORS.primary}
-          strokeWidth={isMainDegree ? 1 : 0.5}
-          opacity={isMainDegree ? 1 : 0.7}
+          strokeWidth={isMainDegree ? "1.2" : "0.8"}
+          opacity={isMainDegree ? "1" : "0.6"}
+          className="transition-opacity duration-200"
         />
       );
     }
@@ -34,57 +40,52 @@ export const ZodiacCircle: React.FC = () => {
 
   return (
     <g className="zodiac-circle">
-      {/* Tło dla zewnętrznego pierścienia */}
+      {/* Tło dla lepszej widoczności znaków */}
+      <defs>
+        <filter id="glow">
+          <feGaussianBlur stdDeviation="2" result="coloredBlur"/>
+          <feMerge>
+            <feMergeNode in="coloredBlur"/>
+            <feMergeNode in="SourceGraphic"/>
+          </feMerge>
+        </filter>
+      </defs>
+
+      {/* Zewnętrzny krąg z efektem głębi */}
       <circle 
         cx={CENTER} 
         cy={CENTER} 
         r={RADIUS.outer}
-        fill={THEME_COLORS.background}
+        fill="none"
         stroke={THEME_COLORS.primary}
-        strokeWidth="1"
+        strokeWidth="1.5"
         className="drop-shadow-lg"
       />
       
-      {/* Wewnętrzny okrąg */}
+      {/* Wewnętrzny krąg */}
       <circle 
         cx={CENTER} 
         cy={CENTER} 
-        r={RADIUS.inner}
+        r={RADIUS.zodiac}
         fill="none"
         stroke={THEME_COLORS.primary}
         strokeWidth="1"
+        opacity="0.8"
       />
 
       {/* Znaczniki stopni */}
       {renderDegreeMarks()}
 
-      {/* Linie podziału znaków zodiaku */}
-      {Array.from({ length: 12 }).map((_, index) => {
-        const angle = index * 30 - 90;
-        const start = polarToCartesian(CENTER, CENTER, RADIUS.outer, angle);
-        const end = polarToCartesian(CENTER, CENTER, RADIUS.inner, angle);
-        return (
-          <line
-            key={`zodiac-line-${index}`}
-            x1={start.x}
-            y1={start.y}
-            x2={end.x}
-            y2={end.y}
-            stroke={THEME_COLORS.primary}
-            strokeWidth="1"
-          />
-        );
-      })}
-
-      {/* Znaki zodiaku */}
-      {ZODIAC_SIGNS.map((sign, index) => {
-        const angle = index * 30 - 75; // -75 dla wycentrowania w 30-stopniowym sektorze
+      {/* Znaki zodiaku z poprawioną czytelnością */}
+      {zodiacSigns.map((sign, index) => {
+        const angle = index * 30 - 75; // -75 dla wycentrowania w sektorze
         const symbolPos = polarToCartesian(
           CENTER, 
-          CENTER, 
-          RADIUS.outer - 25,  // Odsunięcie symbolu od zewnętrznego kręgu
+          CENTER,
+          RADIUS.outer - 25,
           angle
         );
+        
         return (
           <text
             key={sign.symbol}
@@ -93,8 +94,8 @@ export const ZodiacCircle: React.FC = () => {
             textAnchor="middle"
             dominantBaseline="middle"
             fill={THEME_COLORS.primary}
-            fontSize="16"
-            className="font-zodiac select-none filter drop-shadow"
+            fontSize="18"
+            className="font-zodiac select-none filter drop-shadow-md"
             style={{ filter: 'url(#glow)' }}
           >
             {sign.symbol}

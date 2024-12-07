@@ -1,98 +1,108 @@
 import React from 'react';
-import { ASPECT_COLORS, CENTER, RADIUS, AspectType } from '../../constants/chart';
+import { CENTER, RADIUS, ASPECT_COLORS } from '../../constants/chart';
 import { polarToCartesian } from '../../utils/chart';
+import { AspectType } from '../../types/chart';
 
 interface AspectLineProps {
   aspect: {
     planet1: string;
     planet2: string;
     aspekt: AspectType;
-    typ: string;  // 'aplikacyjny' lub 'separacyjny'
+    dokładny_kąt: number;
   };
   position1: number;
   position2: number;
-  isHighlighted: boolean;
+  isHighlighted?: boolean;
 }
 
 export const AspectLine: React.FC<AspectLineProps> = ({
   aspect,
   position1,
   position2,
-  isHighlighted,
+  isHighlighted = false
 }) => {
-  const { x: x1, y: y1 } = polarToCartesian(
-    CENTER, 
-    CENTER, 
-    RADIUS.planets, 
-    position1 - 90
-  );
-  
-  const { x: x2, y: y2 } = polarToCartesian(
-    CENTER, 
-    CENTER, 
-    RADIUS.planets, 
-    position2 - 90
-  );
+  // Oblicz punkty końcowe linii
+  const pos1 = polarToCartesian(CENTER, CENTER, RADIUS.planets, position1 - 90);
+  const pos2 = polarToCartesian(CENTER, CENTER, RADIUS.planets, position2 - 90);
 
-  // Różne style linii dla różnych typów aspektów
-  const getStrokeDasharray = () => {
+  // Style linii w zależności od typu aspektu i stanu
+  const getLineStyles = () => {
+    const baseWidth = isHighlighted ? 1.5 : 1;
+    const baseOpacity = isHighlighted ? 1 : 0.6;
+
+    const styles = {
+      strokeWidth: baseWidth,
+      opacity: baseOpacity,
+      dasharray: "none"
+    };
+
     switch (aspect.aspekt) {
       case 'opozycja':
-        return "4,4";
-      case 'kwadratura':
-        return "6,3";
-      case 'półkwadratura':
-      case 'półtorakwadratura':
-        return "2,2";
+      case 'koniunkcja':
+        styles.strokeWidth = baseWidth * 1.2;
+        break;
+      case 'trygon':
+      case 'sekstyl':
+        styles.dasharray = "none";
+        break;
       default:
-        return "none";
+        styles.dasharray = "4,4";
+        break;
     }
+
+    return styles;
   };
 
-  const getStrokeWidth = () => {
-    if (isHighlighted) {
-      return aspect.typ === 'aplikacyjny' ? "2" : "1.5";
-    }
-    return aspect.typ === 'aplikacyjny' ? "1.5" : "1";
-  };
-
-  const getOpacity = () => {
-    if (isHighlighted) {
-      return aspect.typ === 'aplikacyjny' ? "0.8" : "0.6";
-    }
-    return aspect.typ === 'aplikacyjny' ? "0.6" : "0.4";
-  };
+  const styles = getLineStyles();
 
   return (
-    <>
-      {/* Linia aspektu z efektem poświaty */}
+    <g className="aspect-line">
+      {/* Cień linii dla lepszej widoczności */}
       {isHighlighted && (
         <line
-          x1={x1}
-          y1={y1}
-          x2={x2}
-          y2={y2}
-          stroke={ASPECT_COLORS[aspect.aspekt]}
-          strokeWidth={getStrokeWidth()}
-          strokeDasharray={getStrokeDasharray()}
-          opacity="0.2"
-          filter="url(#glow)"
+          x1={pos1.x}
+          y1={pos1.y}
+          x2={pos2.x}
+          y2={pos2.y}
+          stroke="rgba(0,0,0,0.5)"
+          strokeWidth={styles.strokeWidth + 1}
+          className="transition-all duration-300"
         />
       )}
-      
+
       {/* Główna linia aspektu */}
       <line
-        x1={x1}
-        y1={y1}
-        x2={x2}
-        y2={y2}
+        x1={pos1.x}
+        y1={pos1.y}
+        x2={pos2.x}
+        y2={pos2.y}
         stroke={ASPECT_COLORS[aspect.aspekt]}
-        strokeWidth={getStrokeWidth()}
-        strokeDasharray={getStrokeDasharray()}
-        opacity={getOpacity()}
-        className="transition-all duration-200"
+        strokeWidth={styles.strokeWidth}
+        strokeDasharray={styles.dasharray}
+        opacity={styles.opacity}
+        className="transition-all duration-300"
       />
-    </>
+
+      {/* Punkty końcowe dla wyróżnionych aspektów */}
+      {isHighlighted && (
+        <>
+          <circle
+            cx={pos1.x}
+            cy={pos1.y}
+            r={2}
+            fill={ASPECT_COLORS[aspect.aspekt]}
+            className="animate-ping-slow"
+          />
+          <circle
+            cx={pos2.x}
+            cy={pos2.y}
+            r={2}
+            fill={ASPECT_COLORS[aspect.aspekt]}
+            className="animate-ping-slow"
+          />
+        </>
+      )}
+    </g>
   );
 };
 

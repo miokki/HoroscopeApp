@@ -1,59 +1,35 @@
-import React, { useRef } from 'react';
+import React, { useRef, useMemo, useEffect, useState } from 'react';
+import { ZODIAC_SIGNS, RADIUS, CHART_SIZE, PLANET_COLORS } from '../../constants/chart';
+import { AspectType, ChartData, Point } from '../../types/chart';
+import { ForceLayoutManager } from '../../utils/ForceLayoutManager';
+import { DynamicOrbitSystem } from '../../utils/DynamicOrbitSystem';
+import { useChartInteraction } from '../../hooks/useChartInteraction';
 import { ZodiacCircle } from './ZodiacCircle';
-import { Planet } from './Planet';
 import { AspectLine } from './AspectLine';
 import { Houses } from './Houses';
-import { ChartContainer } from './ChartContainer';
-import { useChartInteraction } from '../../hooks/useChartInteraction';
-import { AspectType } from '../../constants/chart';
+import ChartContainer from './ChartContainer';
+import Planet from './Planet';
 import PlanetTooltip from './PlanetTooltip';
+import SmartPlanetLabel from './SmartPlanetLabel';
+import AspectLegend from './AspectLegend';
 
-export interface PlanetPosition {
-  'długość ekliptyczna': number;
-  'znak_zodiaku': string;
-  'szerokość ekliptyczna': number;
-  'dom': number;
-  'retrogradacja'?: boolean;
-  'szybkość'?: number;
-  'faza'?: {
-    phase: string;
-    degrees: number;
-  };
-  'dyspozytor'?: string;
-  'stopnie': number;
-  'minuty': number;
-}
-
-interface Aspect {
-  planet1: string;
-  planet2: string;
-  aspekt: AspectType;
-  dokładny_kąt: number;
-  orb: number;
-  typ: string;
-}
+type PlanetName = "Słońce" | "Księżyc" | "Merkury" | "Wenus" | "Mars" | "Jowisz" | "Saturn" | "Uran" | "Neptun" | "Pluton";
 
 export interface HoroscopeChartProps {
-  data: {
-    planet_positions: Record<string, PlanetPosition>;
-    house_positions: Record<number, {
-      pozycja: number;
-      znak_zodiaku: string;
-      stopnie: number;
-      minuty: number;
-    }>;
-    aspects: Aspect[];
-    configurations?: Array<{
-      typ: string;
-      planety: string[];
-      planeta_szczytowa?: string;
-    }>;
-    stelliums?: Array<string[]>;
-  };
+  data: ChartData;
+  onPlanetSelect?: (planet: string | null) => void;
+  onPlanetHover?: (planet: string | null) => void;
+  className?: string;
 }
 
-const HoroscopeChart: React.FC<HoroscopeChartProps> = ({ data }) => {
-  const containerRef = useRef<HTMLDivElement>(null);
+export const HoroscopeChart: React.FC<HoroscopeChartProps> = ({
+  data,
+  onPlanetSelect,
+  onPlanetHover,
+  className = ''
+}) => {
+  const containerRef = useRef<SVGSVGElement>(null);
+  const [planetPositions, setPlanetPositions] = useState<{ [key: string]: Point }>({});
 
   const {
     hoveredPlanet,
@@ -61,113 +37,97 @@ const HoroscopeChart: React.FC<HoroscopeChartProps> = ({ data }) => {
     tooltipPosition,
     handlePlanetHover,
     handlePlanetClick,
-    handleChartClick,
     isHighlighted,
   } = useChartInteraction(containerRef);
 
+  const { planetsWithPositions, orbitLevels } = useMemo(() => {
+    if (!data) return { planetsWithPositions: [], orbitLevels: {} };
+
+    const orbitSystem = new DynamicOrbitSystem(
+      Object.entries(data.planet_positions).map(([planet, planetData]) => ({
+        planet,
+        position: planetData['długość ekliptyczna'],
+        isRetrograde: planetData.retrogradacja
+      }))
+    );
+
+    const levels = orbitSystem.optimizeOrbitLevels();
+    const planets = Object.entries(data.planet_positions).map(([planet, planetData]) => ({
+      planet,
+      position: planetData['długość ekliptyczna'],
+      data: planetData
+    }));
+
+    return { planetsWithPositions: planets, orbitLevels: levels };
+  }, [data]);
+
+  useEffect(() => {
+    if (!data) return;
+
+    const planetNodes = planetsWithPositions.map(p => ({
+      planet: p.planet,
+      position: p.position,
+      orbitLevel: orbitLevels[p.planet],
+      x: 0,
+      y: 0
+    }));
+
+    const layoutManager = new ForceLayoutManager(planetNodes);
+    setPlanetPositions(layoutManager.getPositions());
+  }, [planetsWithPositions, orbitLevels, data]);
+
   if (!data) return null;
 
-  const { planet_positions, house_positions, aspects } = data;
-
-  const isAspectHighlighted = (aspect: Aspect) => {
-    return isHighlighted(aspect.planet1) || isHighlighted(aspect.planet2);
-  };
-
-  const activePlanet = selectedPlanet || hoveredPlanet;
-
-  // Przygotowanie pozycji wszystkich planet
-  const allPositions: { [planet: string]: number } = {};
-  Object.entries(planet_positions).forEach(([planet, planetData]) => {
-    allPositions[planet] = planetData['długość ekliptyczna'];
-  });
-
-  // Obliczenie poziomów orbit, aby uniknąć nachodzenia
-  // Tworzymy tablicę planet z ich pozycjami
-  const planetsWithPositions = Object.entries(planet_positions).map(([planet, planetData]) => ({
-    planet,
-    position: planetData['długość ekliptyczna'],
-    data: planetData,
-  }));
-
-  // Sortujemy planety według pozycji
-  planetsWithPositions.sort((a, b) => a.position - b.position);
-
-  // Przypisujemy poziomy orbit
-  const threshold = 10; // Próg odległości kątowej w stopniach
-  const orbitLevels: { [planet: string]: number } = {};
-
-  for (let i = 0; i < planetsWithPositions.length; i++) {
-    const currentPlanet = planetsWithPositions[i];
-    let level = 0;
-
-    while (true) {
-      let hasOverlap = false;
-      for (let j = 0; j < i; j++) {
-        const otherPlanet = planetsWithPositions[j];
-        let angularDistance = Math.abs(currentPlanet.position - otherPlanet.position);
-        if (angularDistance > 180) {
-          angularDistance = 360 - angularDistance;
-        }
-        if (angularDistance < threshold && orbitLevels[otherPlanet.planet] === level) {
-          hasOverlap = true;
-          break;
-        }
-      }
-      if (hasOverlap) {
-        level++;
-      } else {
-        break;
-      }
-    }
-
-    orbitLevels[currentPlanet.planet] = level;
-  }
-
   return (
-    <div className="relative" onClick={handleChartClick}>
+    <div className={`relative w-full aspect-square max-w-[${CHART_SIZE}px] mx-auto ${className}`}>
       <ChartContainer containerRef={containerRef}>
-        {/* Podstawowa struktura wykresu */}
-        <ZodiacCircle />
-
-        {/* Domy astrologiczne */}
-        <Houses houses={house_positions} />
-
-        {/* Linie aspektów */}
-        {aspects?.map((aspect: Aspect, index: number) => (
+        <ZodiacCircle zodiacSigns={ZODIAC_SIGNS} radius={RADIUS.zodiac} />
+        <Houses houses={data.house_positions} />
+        
+        {data.aspects?.map((aspect, index) => (
           <AspectLine
             key={`aspect-${index}`}
             aspect={aspect}
-            position1={planet_positions[aspect.planet1]['długość ekliptyczna']}
-            position2={planet_positions[aspect.planet2]['długość ekliptyczna']}
-            isHighlighted={isAspectHighlighted(aspect)}
+            position1={data.planet_positions[aspect.planet1]['długość ekliptyczna']}
+            position2={data.planet_positions[aspect.planet2]['długość ekliptyczna']}
+            isHighlighted={isHighlighted(aspect.planet1) || isHighlighted(aspect.planet2)}
           />
         ))}
 
-        {/* Planety */}
-        {planetsWithPositions.map(({ planet, position, data }) => (
-          <Planet
-            key={`planet-${planet}`}
-            planet={planet}
-            position={position}
-            isRetrograde={data.retrogradacja}
-            isHighlighted={isHighlighted(planet)}
-            onHover={handlePlanetHover}
-            onClick={handlePlanetClick}
-            orbitLevel={orbitLevels[planet]} // Przekazujemy poziom orbity
-          />
+        {planetsWithPositions.map(({ planet, position, data: planetData }) => (
+          <React.Fragment key={`planet-${planet}`}>
+            <Planet
+              planet={planet as PlanetName}
+              position={position}
+              isRetrograde={planetData.retrogradacja}
+              isHighlighted={isHighlighted(planet)}
+              onHover={handlePlanetHover}
+              onClick={handlePlanetClick}
+              orbitLevel={orbitLevels[planet]}
+              forcePosition={planetPositions[planet]}
+            />
+            <SmartPlanetLabel
+              planet={planet}
+              position={position}
+              orbitLevel={orbitLevels[planet]}
+              forcePosition={planetPositions[planet]}
+            />
+          </React.Fragment>
         ))}
-      </ChartContainer>
 
-      {/* Tooltip */}
-      {activePlanet && tooltipPosition && planet_positions[activePlanet] && (
-        <PlanetTooltip
-          planet={activePlanet}
-          data={planet_positions[activePlanet]}
-          position={tooltipPosition}
+        <AspectLegend 
+          aspectTypes={data.aspects?.map(aspect => aspect.typ as AspectType) || []}
+          className="absolute top-4 right-4"
         />
-      )}
+        
+        {((hoveredPlanet || selectedPlanet) && tooltipPosition && data?.planet_positions) && (
+          <PlanetTooltip
+            planet={hoveredPlanet || selectedPlanet!}
+            data={data.planet_positions[hoveredPlanet || selectedPlanet!]}
+            position={tooltipPosition}
+          />
+        )}
+      </ChartContainer>
     </div>
   );
 };
-
-export default HoroscopeChart;

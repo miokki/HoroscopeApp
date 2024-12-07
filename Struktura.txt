@@ -1,5 +1,10 @@
 /HoroscopeApp
+  .gitignore
+  README.md
+  requirements.txt
+  struktura.txt
   /backend
+    app.py
     /ephe
       seas_18.se1
       semo_18.se1
@@ -11,6 +16,7 @@
     postcss.config.js
     tailwind.connfig.js
     tsconfig.json
+    .gitignore
     /public
       favicon.ico
       index.html
@@ -43,6 +49,7 @@
           MoonPhase.tsx
           Planet.tsx
           PlanetIcon.tsx
+          PLanetLabel.tsx
           PlanetTooltip.tsx
           ZodiacCircle.tsx
         /form
@@ -52,6 +59,9 @@
         chart.ts
       /hooks
         useChartInteraction.ts
+      /types
+      /styles
+        chart.css
       /utils
         chart.ts
       App.tsx
